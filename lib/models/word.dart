@@ -1,4 +1,4 @@
-enum Difficulty { easy, medium, hard }
+enum Difficulty { all, easy, medium, hard }
 
 class Word {
   final int? id;

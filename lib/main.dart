@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:slova/screens/main_screen.dart';
+import 'package:slova/services/data_initializer.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Инициализируем данные при первом запуске
+  final dataInitializer = DataInitializer();
+  await dataInitializer.initializeData();
+
   runApp(
     const ProviderScope(
       child: MyApp(),
