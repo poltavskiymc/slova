@@ -4,19 +4,28 @@
         {
             "name": "slova",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "program": "lib/main.dart",
+            "cwd": "${workspaceFolder}",
+            "args": []
         },
         {
             "name": "slova (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "program": "lib/main.dart",
+            "cwd": "${workspaceFolder}",
+            "flutterMode": "profile",
+            "args": []
         },
         {
             "name": "slova (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "program": "lib/main.dart",
+            "cwd": "${workspaceFolder}",
+            "flutterMode": "release",
+            "args": []
         }
     ]
 }
