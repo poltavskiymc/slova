@@ -16,12 +16,6 @@ class GameResultScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Возвращаем портретную ориентацию
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Результаты игры'),

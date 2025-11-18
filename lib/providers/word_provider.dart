@@ -108,13 +108,16 @@ class WordsNotifier extends StateNotifier<List<Word>> {
 
   void addWord(String text, Difficulty difficulty) {
     final newWord = Word(
-      text: text,
+      text: text.toUpperCase(), // Преобразуем в верхний регистр
       difficulty: difficulty,
       categoryId: categoryId ?? 0,
     );
     // Добавляем в начало списка, затем сортируем
     state = [newWord, ...state];
     _sortWords();
+
+    // Invalidate related providers to update word counts
+    ref.invalidate(wordCountByCategoryProvider(categoryId!));
   }
 
   void updateWord(int index, String text, Difficulty difficulty) {
@@ -125,12 +128,15 @@ class WordsNotifier extends StateNotifier<List<Word>> {
       final newState = List<Word>.from(state);
       newState.removeAt(index);
       state = newState;
+
+      // Invalidate related providers to update word counts
+      ref.invalidate(wordCountByCategoryProvider(categoryId!));
       return;
     }
 
     final updatedWord = Word(
       id: state[index].id,
-      text: text,
+      text: text.toUpperCase(), // Преобразуем в верхний регистр
       difficulty: difficulty,
       categoryId: state[index].categoryId,
     );
@@ -139,6 +145,9 @@ class WordsNotifier extends StateNotifier<List<Word>> {
     newState[index] = updatedWord;
     state = newState;
     _sortWords();
+
+    // Invalidate related providers to update word counts
+    ref.invalidate(wordCountByCategoryProvider(categoryId!));
   }
 
   void removeWord(int index) {
@@ -147,6 +156,9 @@ class WordsNotifier extends StateNotifier<List<Word>> {
     final newState = List<Word>.from(state);
     newState.removeAt(index);
     state = newState;
+
+    // Invalidate related providers to update word counts
+    ref.invalidate(wordCountByCategoryProvider(categoryId!));
   }
 
   Future<void> saveWords() async {

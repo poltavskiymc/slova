@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:slova/config/supabase_config.dart';
 import 'package:slova/screens/main_screen.dart';
@@ -7,6 +8,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Устанавливаем портретную ориентацию по умолчанию для всего приложения
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   // Инициализируем Supabase
   await Supabase.initialize(

@@ -94,22 +94,25 @@ class DataInitializer {
         final wordText = wordData['text'] as String;
         final wordDifficulty = _parseDifficulty(wordData['difficulty'] as String);
 
+        // Преобразуем текст слова в верхний регистр для хранения
+        final normalizedWordText = wordText.toUpperCase();
+
         final word = Word(
-          text: wordText,
+          text: normalizedWordText,
           difficulty: wordDifficulty,
           categoryId: localCategory.id!,
         );
 
-        // Проверяем, существует ли уже такое слово в этой категории
+        // Проверяем, существует ли уже такое слово в этой категории (сравнение в нижнем регистре)
         final existingWords = await _wordRepository.getWordsByCategory(localCategory.id!);
         final existingWord = existingWords
-            .where((w) => w.text == word.text)
+            .where((w) => w.text.toLowerCase() == wordText.toLowerCase())
             .firstOrNull;
 
         if (existingWord == null) {
           // Создаем новое слово
           await _wordRepository.insertWord(word);
-          developer.log('Created new word: $wordText in category $categoryName');
+          developer.log('Created new word: $normalizedWordText in category $categoryName');
         } else {
           // Обновляем существующее слово только если сложность изменилась
           if (existingWord.difficulty != word.difficulty) {
@@ -120,7 +123,7 @@ class DataInitializer {
               categoryId: word.categoryId,
             );
             await _wordRepository.updateWord(updatedWord);
-            developer.log('Updated word: $wordText (difficulty changed)');
+            developer.log('Updated word: $normalizedWordText (difficulty changed)');
           }
         }
       } catch (e) {
@@ -186,35 +189,35 @@ class DataInitializer {
   Future<void> _addAnimalWords(int categoryId) async {
     final animalWords = [
       // Легкие (5 слов)
-      Word(text: 'Кот', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Собака', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Лошадь', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Корова', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Курица', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Рыба', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Утка', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Гусь', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'КОТ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'СОБАКА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ЛОШАДЬ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'КОРОВА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'КУРИЦА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'РЫБА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'УТКА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ГУСЬ', difficulty: Difficulty.easy, categoryId: categoryId),
 
       // Средние (8 слов)
-      Word(text: 'Жираф', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Слон', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Тигр', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Обезьяна', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Крокодил', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Медведь', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Волк', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Лиса', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Заяц', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Белка', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ЖИРАФ', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'СЛОН', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ТИГР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ОБЕЗЬЯНА', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'КРОКОДИЛ', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'МЕДВЕДЬ', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ВОЛК', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ЛИСА', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ЗАЯЦ', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'БЕЛКА', difficulty: Difficulty.medium, categoryId: categoryId),
 
       // Сложные (7 слов)
-      Word(text: 'Хамелеон', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Кенгуру', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Пингвин', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Страус', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Коала', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Панда', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Лев', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ХАМЕЛЕОН', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'КЕНГУРУ', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ПИНГВИН', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'СТРАУС', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'КОАЛА', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ПАНДА', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ЛЕВ', difficulty: Difficulty.hard, categoryId: categoryId),
     ];
 
     for (final word in animalWords) {
@@ -226,35 +229,35 @@ class DataInitializer {
   Future<void> _addObjectWords(int categoryId) async {
     final objectWords = [
       // Легкие (8 слов)
-      Word(text: 'Стол', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Стул', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Дверь', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Окно', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Книга', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Карандаш', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Бумага', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Лампа', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Чашка', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'СТОЛ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'СТУЛ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ДВЕРЬ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ОКНО', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'КНИГА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'КАРАНДАШ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'БУМАГА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ЛАМПА', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ЧАШКА', difficulty: Difficulty.easy, categoryId: categoryId),
 
       // Средние (8 слов)
-      Word(text: 'Компьютер', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Телефон', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Холодильник', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Микроволновка', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Пылесос', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Телевизор', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Принтер', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Клавиатура', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Монитор', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'КОМПЬЮТЕР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ТЕЛЕФОН', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ХОЛОДИЛЬНИК', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'МИКРОВОЛНОВКА', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ПЫЛЕСОС', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ТЕЛЕВИЗОР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ПРИНТЕР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'КЛАВИАТУРА', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'МОНИТОР', difficulty: Difficulty.medium, categoryId: categoryId),
 
       // Сложные (7 слов)
-      Word(text: 'Микроскоп', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Телескоп', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Генератор', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Аккумулятор', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Катализатор', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Трансформатор', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Конденсатор', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'МИКРОСКОП', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ТЕЛЕСКОП', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ГЕНЕРАТОР', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'АККУМУЛЯТОР', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'КАТАЛИЗАТОР', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ТРАНСФОРМАТОР', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'КОНДЕНСАТОР', difficulty: Difficulty.hard, categoryId: categoryId),
     ];
 
     for (final word in objectWords) {
@@ -266,33 +269,33 @@ class DataInitializer {
   Future<void> _addProfessionWords(int categoryId) async {
     final professionWords = [
       // Легкие (8 слов)
-      Word(text: 'Врач', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Учитель', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Повар', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Водитель', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Продавец', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Сантехник', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Электрик', difficulty: Difficulty.easy, categoryId: categoryId),
-      Word(text: 'Маляр', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ВРАЧ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'УЧИТЕЛЬ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ПОВАР', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ВОДИТЕЛЬ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ПРОДАВЕЦ', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'САНТЕХНИК', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'ЭЛЕКТРИК', difficulty: Difficulty.easy, categoryId: categoryId),
+      Word(text: 'МАЛЯР', difficulty: Difficulty.easy, categoryId: categoryId),
 
       // Средние (8 слов)
-      Word(text: 'Программист', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Архитектор', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Журналист', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Фотограф', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Дизайнер', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Бухгалтер', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Менеджер', difficulty: Difficulty.medium, categoryId: categoryId),
-      Word(text: 'Инженер', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ПРОГРАММИСТ', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'АРХИТЕКТОР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ЖУРНАЛИСТ', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ФОТОГРАФ', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ДИЗАЙНЕР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'БУХГАЛТЕР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'МЕНЕДЖЕР', difficulty: Difficulty.medium, categoryId: categoryId),
+      Word(text: 'ИНЖЕНЕР', difficulty: Difficulty.medium, categoryId: categoryId),
 
       // Сложные (7 слов)
-      Word(text: 'Анестезиолог', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Космонавт', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Археолог', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Палеонтолог', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Геодезист', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Хирург', difficulty: Difficulty.hard, categoryId: categoryId),
-      Word(text: 'Психолог', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'АНЕСТЕЗИОЛОГ', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'КОСМОНАВТ', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'АРХЕОЛОГ', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ПАЛЕОНТОЛОГ', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ГЕОДЕЗИСТ', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ХИРУРГ', difficulty: Difficulty.hard, categoryId: categoryId),
+      Word(text: 'ПСИХОЛОГ', difficulty: Difficulty.hard, categoryId: categoryId),
     ];
 
     for (final word in professionWords) {
