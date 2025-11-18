@@ -54,4 +54,9 @@ class UserSettingsNotifier extends StateNotifier<UserSettings> {
     state = state.copyWith(enableSound: value);
     await _saveSettings();
   }
+
+  Future<void> setRoundDuration(int duration) async {
+    state = state.copyWith(roundDuration: duration);
+    await _saveSettings();
+  }
 }

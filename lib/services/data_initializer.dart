@@ -14,6 +14,135 @@ class DataInitializer {
     developer.log('Data initialization completed');
   }
 
+  /// Синхронизирует данные из Supabase с локальной БД
+  Future<void> syncFromSupabase(
+    List<Map<String, dynamic>> categoriesData,
+    List<Map<String, dynamic>> wordsData,
+  ) async {
+    developer.log('Starting Supabase sync...');
+
+    // Синхронизируем категории
+    await _syncCategoriesFromSupabase(categoriesData);
+
+    // Синхронизируем слова
+    await _syncWordsFromSupabase(wordsData, categoriesData);
+
+    developer.log('Supabase sync completed');
+  }
+
+  Future<void> _syncCategoriesFromSupabase(List<Map<String, dynamic>> categoriesData) async {
+    developer.log('Syncing ${categoriesData.length} categories from Supabase');
+
+    // Получаем существующие категории для быстрого поиска
+    final existingCategories = await _categoryRepository.getAllCategories();
+    final existingCategoryMap = {for (final c in existingCategories) c.name: c};
+
+    for (final categoryData in categoriesData) {
+      try {
+        final categoryName = categoryData['name'] as String;
+        final categoryDescription = categoryData['description'] as String?;
+        final existingCategory = existingCategoryMap[categoryName];
+
+        if (existingCategory == null) {
+          // Создаем новую категорию
+          final newCategory = Category(
+            name: categoryName,
+            description: categoryDescription,
+          );
+          await _categoryRepository.insertCategory(newCategory);
+          developer.log('Created new category: $categoryName');
+        } else {
+          // Обновляем существующую категорию только если описание изменилось
+          if (existingCategory.description != categoryDescription) {
+            final updatedCategory = Category(
+              id: existingCategory.id,
+              name: categoryName,
+              description: categoryDescription,
+            );
+            await _categoryRepository.updateCategory(updatedCategory);
+            developer.log('Updated category: $categoryName');
+          }
+        }
+      } catch (e) {
+        developer.log('Error syncing category ${categoryData['name']}: $e');
+      }
+    }
+  }
+
+  Future<void> _syncWordsFromSupabase(
+    List<Map<String, dynamic>> wordsData,
+    List<Map<String, dynamic>> categoriesData,
+  ) async {
+    developer.log('Syncing ${wordsData.length} words from Supabase');
+
+    // Создаем карту соответствия Supabase category_id -> локальная категория
+    final localCategories = await _categoryRepository.getAllCategories();
+    final categoryIdToNameMap = {for (final c in categoriesData) c['id']: c['name']};
+    final categoryNameToLocalMap = {for (final c in localCategories) c.name: c};
+
+    for (final wordData in wordsData) {
+      try {
+        final supabaseCategoryId = wordData['category_id'] as String?;
+        if (supabaseCategoryId == null) continue;
+
+        final categoryName = categoryIdToNameMap[supabaseCategoryId] as String?;
+        if (categoryName == null) continue;
+
+        final localCategory = categoryNameToLocalMap[categoryName];
+        if (localCategory == null) continue;
+
+        final wordText = wordData['text'] as String;
+        final wordDifficulty = _parseDifficulty(wordData['difficulty'] as String);
+
+        final word = Word(
+          text: wordText,
+          difficulty: wordDifficulty,
+          categoryId: localCategory.id!,
+        );
+
+        // Проверяем, существует ли уже такое слово в этой категории
+        final existingWords = await _wordRepository.getWordsByCategory(localCategory.id!);
+        final existingWord = existingWords
+            .where((w) => w.text == word.text)
+            .firstOrNull;
+
+        if (existingWord == null) {
+          // Создаем новое слово
+          await _wordRepository.insertWord(word);
+          developer.log('Created new word: $wordText in category $categoryName');
+        } else {
+          // Обновляем существующее слово только если сложность изменилась
+          if (existingWord.difficulty != word.difficulty) {
+            final updatedWord = Word(
+              id: existingWord.id,
+              text: word.text,
+              difficulty: word.difficulty,
+              categoryId: word.categoryId,
+            );
+            await _wordRepository.updateWord(updatedWord);
+            developer.log('Updated word: $wordText (difficulty changed)');
+          }
+        }
+      } catch (e) {
+        developer.log('Error syncing word ${wordData['text']}: $e');
+      }
+    }
+  }
+
+
+  Difficulty _parseDifficulty(String difficultyStr) {
+    switch (difficultyStr.toLowerCase()) {
+      case 'easy':
+        return Difficulty.easy;
+      case 'medium':
+        return Difficulty.medium;
+      case 'hard':
+        return Difficulty.hard;
+      default:
+        return Difficulty.easy;
+    }
+  }
+
   Future<void> _initializeCategories() async {
     // Проверяем, есть ли уже категории
     final categories = await _categoryRepository.getAllCategories();

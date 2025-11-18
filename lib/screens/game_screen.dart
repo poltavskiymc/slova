@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:slova/models/word.dart';
 import 'package:slova/models/game_result.dart';
+import 'package:slova/providers/settings_provider.dart';
 import 'package:slova/screens/game_result_screen.dart';
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends ConsumerStatefulWidget {
   final int categoryId;
   final String categoryName;
   final Difficulty difficulty;
@@ -26,13 +28,14 @@ class GameScreen extends StatefulWidget {
   }
 
   @override
-  State<GameScreen> createState() {
+  ConsumerState<GameScreen> createState() {
     developer.log('GameScreen: createState called');
     return _GameScreenState();
   }
 }
 
-class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
+class _GameScreenState extends ConsumerState<GameScreen>
+    with TickerProviderStateMixin {
   // Игровая логика
   List<Word> _gameWords = [];
   int _currentWordIndex = 0;
@@ -41,8 +44,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   // Таймер
   Timer? _gameTimer;
-  int _remainingSeconds = 60;
+  int _remainingSeconds = 60; // Дефолтное значение, будет обновлено из настроек
+  int _initialRoundDuration =
+      60; // Сохраняем начальную длительность для расчета totalTime
   bool _gameStarted = false;
+
+  // Таймеры для звуков окончания игры
+  List<Timer> _endGameSoundTimers = [];
 
   // Обратный отсчет
   int _countdown = 3;
@@ -219,15 +227,22 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   Future<void> _playSound(String soundName) async {
     try {
+      // Проверяем, что AudioPlayer еще не disposed
+      if (_audioPlayer.state == PlayerState.disposed) {
+        return;
+      }
+
       await _audioPlayer.stop(); // Останавливаем предыдущий звук
       await _audioPlayer.setSource(AssetSource('audio/$soundName.mp3'));
       await _audioPlayer.resume();
 
       // Для колокольчика играем только первые 2.5 секунды
-      if (soundName == 'old-ships-bell-ding') {
+      if (soundName == 'beep') {
         Timer(const Duration(milliseconds: 2500), () async {
           try {
-            await _audioPlayer.stop();
+            if (_audioPlayer.state != PlayerState.disposed) {
+              await _audioPlayer.stop();
+            }
           } catch (e) {
             // Игнорируем ошибки остановки
           }
@@ -298,7 +313,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     final result = GameResult(
       guessedWords: _guessedWords,
       skippedWords: _skippedWords,
-      totalTime: 60 - _remainingSeconds,
+      totalTime: _initialRoundDuration - _remainingSeconds,
       categoryId: widget.categoryId,
       categoryName: widget.categoryName,
       difficulty: widget.difficulty.name,
@@ -317,19 +332,32 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _playEndGameSounds() {
+    // Очищаем предыдущие таймеры
+    for (final timer in _endGameSoundTimers) {
+      timer.cancel();
+    }
+    _endGameSoundTimers.clear();
+
     // Три звуковых сигнала колокольчика с паузами
-    Timer(const Duration(milliseconds: 500),
-        () => _playSound('old-ships-bell-ding'));
-    Timer(const Duration(milliseconds: 3500),
-        () => _playSound('old-ships-bell-ding'));
-    Timer(const Duration(milliseconds: 6500),
-        () => _playSound('old-ships-bell-ding'));
+    _endGameSoundTimers.add(
+        Timer(const Duration(milliseconds: 500), () => _playSound('beep')));
+    _endGameSoundTimers.add(
+        Timer(const Duration(milliseconds: 3500), () => _playSound('beep')));
+    _endGameSoundTimers.add(
+        Timer(const Duration(milliseconds: 6500), () => _playSound('beep')));
   }
 
   @override
   void dispose() {
     _gameTimer?.cancel();
     _accelerometerSubscription?.cancel();
+
+    // Отменяем таймеры звуков окончания игры
+    for (final timer in _endGameSoundTimers) {
+      timer.cancel();
+    }
+    _endGameSoundTimers.clear();
+
     _flashController.dispose();
     _audioPlayer.dispose();
 
@@ -344,6 +372,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final settings = ref.watch(userSettingsProvider);
+
+    // Инициализируем время раунда из настроек (до начала игры)
+    if (!_gameStarted) {
+      _remainingSeconds = settings.roundDuration;
+      _initialRoundDuration = settings.roundDuration;
+    }
+
     developer.log(
         'GameScreen: Building UI - countdown: $_countdown, showCountdown: $_showCountdown, gameStarted: $_gameStarted, currentWord: $_currentWordIndex/${_gameWords.length}');
 

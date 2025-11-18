@@ -63,6 +63,27 @@ class SettingsScreen extends ConsumerWidget {
             },
           ),
 
+          // Длительность раунда
+          ListTile(
+            title: const Text('Длительность раунда'),
+            subtitle: Text('${settings.roundDuration} секунд'),
+            trailing: DropdownButton<int>(
+              value: settings.roundDuration,
+              items: const [
+                DropdownMenuItem(value: 30, child: Text('30 сек')),
+                DropdownMenuItem(value: 45, child: Text('45 сек')),
+                DropdownMenuItem(value: 60, child: Text('1 мин')),
+                DropdownMenuItem(value: 90, child: Text('1.5 мин')),
+                DropdownMenuItem(value: 120, child: Text('2 мин')),
+              ],
+              onChanged: (value) async {
+                if (value != null) {
+                  await ref.read(userSettingsProvider.notifier).setRoundDuration(value);
+                }
+              },
+            ),
+          ),
+
           const Divider(),
 
           // Информация о приложении

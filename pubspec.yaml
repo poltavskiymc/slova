@@ -17,6 +17,7 @@ dependencies:
   sensors_plus: ^4.0.1
   audioplayers: ^5.2.1
   shared_preferences: ^2.2.2
+  supabase_flutter: ^2.5.1
 
 dev_dependencies:
   flutter_test:

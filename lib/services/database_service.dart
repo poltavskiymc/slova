@@ -24,9 +24,20 @@ class DatabaseService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2, // Увеличиваем версию для миграции
       onCreate: _createDatabase,
+      onUpgrade: _upgradeDatabase,
     );
+  }
+
+  static Future<void> _upgradeDatabase(Database db, int oldVersion, int newVersion) async {
+    developer.log('DatabaseService: Upgrading database from $oldVersion to $newVersion');
+
+    if (oldVersion < 2) {
+      // Миграция: добавляем колонку description в таблицу categories
+      await db.execute('ALTER TABLE categories ADD COLUMN description TEXT');
+      developer.log('DatabaseService: Added description column to categories table');
+    }
   }
 
   static Future<void> _createDatabase(Database db, int version) async {
@@ -35,7 +46,8 @@ class DatabaseService {
     await db.execute('''
       CREATE TABLE categories(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
+        name TEXT NOT NULL,
+        description TEXT
       )
     ''');
     developer.log('DatabaseService: Created categories table');
