@@ -48,8 +48,8 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Показывать таймер'),
             subtitle: const Text('Отображение оставшегося времени'),
             value: settings.showTimer,
-            onChanged: (value) {
-              ref.read(userSettingsProvider.notifier).setShowTimer(value);
+            onChanged: (value) async {
+              await ref.read(userSettingsProvider.notifier).setShowTimer(value);
             },
           ),
 
@@ -58,8 +58,8 @@ class SettingsScreen extends ConsumerWidget {
             title: const Text('Звуки'),
             subtitle: const Text('Звуковые эффекты в игре'),
             value: settings.enableSound,
-            onChanged: (value) {
-              ref.read(userSettingsProvider.notifier).setEnableSound(value);
+            onChanged: (value) async {
+              await ref.read(userSettingsProvider.notifier).setEnableSound(value);
             },
           ),
 

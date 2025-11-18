@@ -29,6 +29,10 @@ class UserSettings {
     };
   }
 
+  bool isCategoryFavorite(int categoryId) {
+    return favoriteCategoryIds.contains(categoryId);
+  }
+
   factory UserSettings.fromJson(dynamic json) {
     if (json is Map<String, dynamic>) {
       final favoriteIds = json['favoriteCategoryIds'];

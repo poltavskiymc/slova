@@ -31,7 +31,7 @@ class UserSettingsNotifier extends StateNotifier<UserSettings> {
     await prefs.setString('user_settings', state.toJson().toString());
   }
 
-  void toggleFavoriteCategory(int categoryId) {
+  Future<void> toggleFavoriteCategory(int categoryId) async {
     final isFavorite = state.favoriteCategoryIds.contains(categoryId);
     final newFavorites = List<int>.from(state.favoriteCategoryIds);
 
@@ -42,20 +42,16 @@ class UserSettingsNotifier extends StateNotifier<UserSettings> {
     }
 
     state = state.copyWith(favoriteCategoryIds: newFavorites);
-    _saveSettings();
+    await _saveSettings();
   }
 
-  void setShowTimer(bool value) {
+  Future<void> setShowTimer(bool value) async {
     state = state.copyWith(showTimer: value);
-    _saveSettings();
+    await _saveSettings();
   }
 
-  void setEnableSound(bool value) {
+  Future<void> setEnableSound(bool value) async {
     state = state.copyWith(enableSound: value);
-    _saveSettings();
-  }
-
-  bool isCategoryFavorite(int categoryId) {
-    return state.favoriteCategoryIds.contains(categoryId);
+    await _saveSettings();
   }
 }

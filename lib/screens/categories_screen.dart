@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:slova/models/category.dart';
 import 'package:slova/providers/category_provider.dart';
+import 'package:slova/providers/settings_provider.dart';
 import 'package:slova/screens/difficulty_selection_screen.dart';
 
 class CategoriesScreen extends ConsumerWidget {
@@ -9,10 +11,21 @@ class CategoriesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final categoriesAsync = ref.watch(allCategoriesProvider);
+    final settings = ref.watch(userSettingsProvider);
 
     return categoriesAsync.when(
       data: (categories) {
-        if (categories.isEmpty) {
+        // Сортируем категории: избранные первыми
+        final sortedCategories = List<Category>.from(categories)
+          ..sort((a, b) {
+            final aIsFavorite = settings.isCategoryFavorite(a.id ?? -1);
+            final bIsFavorite = settings.isCategoryFavorite(b.id ?? -1);
+
+            if (aIsFavorite && !bIsFavorite) return -1;
+            if (!aIsFavorite && bIsFavorite) return 1;
+            return 0; // Сохраняем порядок для категорий с одинаковым статусом избранного
+          });
+        if (sortedCategories.isEmpty) {
           return const Center(
             child: Text(
               'Категории пока не добавлены',
@@ -29,51 +42,68 @@ class CategoriesScreen extends ConsumerWidget {
             mainAxisSpacing: 16,
             childAspectRatio: 1, // Квадратные кнопки
           ),
-          itemCount: categories.length,
+          itemCount: sortedCategories.length,
           itemBuilder: (context, index) {
-            final category = categories[index];
+            final category = sortedCategories[index];
+            final isFavorite = settings.isCategoryFavorite(category.id ?? -1);
+
             return Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: InkWell(
-                onTap: () {
-                  if (category.id != null) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute<Widget>(
-                        builder: (context) => DifficultySelectionScreen(
-                          categoryId: category.id!,
-                          categoryName: category.name,
-                        ),
+              child: Stack(
+                alignment: AlignmentDirectional.center,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      if (category.id != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute<Widget>(
+                            builder: (context) => DifficultySelectionScreen(
+                              categoryId: category.id!,
+                              categoryName: category.name,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _getCategoryIcon(category.name),
+                            size: 48,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            category.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                    );
-                  }
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _getCategoryIcon(category.name),
-                        size: 48,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        category.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  if (isFavorite)
+                    const Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Icon(
+                        Icons.star,
+                        color: Colors.amber,
+                        size: 20,
+                      ),
+                    ),
+                ],
               ),
             );
           },
@@ -99,4 +129,3 @@ class CategoriesScreen extends ConsumerWidget {
     }
   }
 }
-
